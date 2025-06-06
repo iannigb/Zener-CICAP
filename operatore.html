@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Operatore CICAP</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: #f8f9fa;
+      color: #333;
+    }
+
+    header {
+      background: #343a40;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      letter-spacing: 1px;
+    }
+
+    main {
+      padding: 2rem;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .card-image {
+      width: 120px;
+      height: 160px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      border: 2px solid #ccc;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+    }
+
+    button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .stats, .download {
+      margin: 1rem 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th {
+      background: #f1f1f1;
+    }
+
+    img.symbol {
+      width: 40px;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+  <header>Operatore CICAP – Test Carte Zener</header>
+  <main>
+    <div class="controls">
+      <button onclick="iniziaPartita()" id="btn-inizia">Inizia Nuovo Test</button>
+      <button onclick="nextCard()" id="btn-next">Nuova Carta</button>
+      <div>Turno: <span id="turno">0</span></div>
+      <div id="card" class="card-image"></div>
+    </div>
+
+    <div class="stats">
+      Statistiche: <span id="corrette">0</span> corrette su <span id="totali">0</span>
+    </div>
+    <div class="download">
+      <button onclick="scaricaCSV()">Scarica CSV</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Turno</th>
+          <th>Carta Segreta</th>
+          <th>Predizione</th>
+          <th>Esatta?</th>
+        </tr>
+      </thead>
+      <tbody id="storico"></tbody>
+    </table>
+  </main>
+
+  <script>
+    const simboli = ['circle', 'cross', 'waves', 'square', 'star'];
+    const immagini = {
+      circle: 'circle.png',
+      cross: 'cross.png',
+      waves: 'waves.png',
+      square: 'square.png',
+      star: 'star.png'
+    };
+
+    const cardElem = document.getElementById("card");
+    const turnoElem = document.getElementById("turno");
+    const storicoElem = document.getElementById("storico");
+    const corretteElem = document.getElementById("corrette");
+    const totaliElem = document.getElementById("totali");
+    const btnNext = document.getElementById("btn-next");
+
+    const channel = new BroadcastChannel("zener_test");
+
+    let turno = 0;
+    let cartaAttuale = null;
+    const risultati = [];
+
+    function creaMazzoZener() {
+      let mazzo = [];
+      simboli.forEach(simbolo => {
+        for (let i = 0; i < 5; i++) {
+          mazzo.push(simbolo);
+        }
+      });
+      return mazzo;
+    }
+
+    function mescolaMazzo(mazzo) {
+      for (let i = mazzo.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [mazzo[i], mazzo[j]] = [mazzo[j], mazzo[i]];
+      }
+    }
+
+    let mazzo = creaMazzoZener();
+
+    function mostraRisultatoFinale() {
+      const corrette = risultati.filter(r => r.segreta === r.predetta).length;
+      let messaggio = `Test completato. Risposte corrette: ${corrette}/50.\n`;
+
+      if (corrette >= 18) {
+        messaggio += "✅ Il test è SUPERATO secondo il criterio del protocollo.";
+      } else {
+        messaggio += "❌ Il test NON è superato secondo il criterio del protocollo.";
+      }
+
+      alert(messaggio);
+      btnNext.disabled = true;
+    }
+
+    function iniziaPartita() {
+      turno = 0;
+      cartaAttuale = null;
+      risultati.length = 0;
+      turnoElem.textContent = turno;
+      corretteElem.textContent = 0;
+      totaliElem.textContent = 0;
+      storicoElem.innerHTML = '';
+      btnNext.disabled = false;
+      mazzo = creaMazzoZener();
+
+      // Comunica il reset al medium
+      channel.postMessage({ tipo: "reset" });
+
+      alert("Nuovo test iniziato! Premi 'Nuova Carta' per iniziare il primo turno.");
+    }
+
+    function nextCard() {
+      if (turno >= 50) {
+        alert("Hai già effettuato 50 turni. Il test è concluso.");
+        return;
+      }
+
+      btnNext.disabled = true;
+      mescolaMazzo(mazzo);
+      cartaAttuale = mazzo[0];
+      turno++;
+      turnoElem.textContent = turno;
+      cardElem.style.backgroundImage = `url(${immagini[cartaAttuale]})`;
+      channel.postMessage({ turno, carta: cartaAttuale });
+
+      if (turno === 50) {
+        setTimeout(mostraRisultatoFinale, 500);
+      }
+    }
+
+    channel.onmessage = (e) => {
+      if (e.data.tipo === "risultato") {
+        const { turno, segreta, predetta } = e.data;
+        const esatta = segreta === predetta ? '✔️' : '❌';
+
+        risultati.push({ turno, segreta, predetta, esatta });
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${turno}</td>
+          <td><img class="symbol" src="${immagini[segreta]}" alt="${segreta}"></td>
+          <td><img class="symbol" src="${immagini[predetta]}" alt="${predetta}"></td>
+          <td>${esatta}</td>
+        `;
+        storicoElem.appendChild(row);
+
+        const corrette = risultati.filter(r => r.segreta === r.predetta).length;
+        corretteElem.textContent = corrette;
+        totaliElem.textContent = risultati.length;
+
+        if (turno < 50) {
+          btnNext.disabled = false;
+        }
+      }
+    };
+
+    function scaricaCSV() {
+      let csv = "Turno,Carta Segreta,Predizione,Esatta\n";
+      risultati.forEach(r => {
+        csv += `${r.turno},${r.segreta},${r.predetta},${r.segreta === r.predetta ? 'SI' : 'NO'}\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = "risultati_zener.csv";
+      link.click();
+    }
+  </script>
+</body>
+</html>

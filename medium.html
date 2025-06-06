@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Medium - Test CICAP</title>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+  <style>
+    body {
+      margin:  0;
+      padding: 0;
+      font-family: "Segoe UI", sans-serif;
+      background-color: #f8f9fa;
+      color: #212529;
+      overflow: hidden;
+    }
+
+    header {
+      background-color: #343a40;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    #main-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    #card-bar {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 3rem;
+      z-index: 1;
+    }
+
+    .card {
+      width: 100px;
+      height: 140px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      object-fit: contain;
+      border: 2px solid transparent;
+      transition: transform 0.2s ease-out, border 0.2s ease-out;
+      background-color: white;
+      cursor: pointer;
+    }
+
+    .card.hovered {
+      transform: scale(1.2);
+      border: 3px solid #ffc107;
+    }
+
+    .card.selected {
+      transform: scale(1.2);
+      border: 3px solid #dc3545;
+    }
+
+#carta-coperta {
+  width: 200px;
+  height: 300px;
+  background-image: url("retro.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+  margin-top: 2rem;
+  z-index: 1;
+}
+
+
+    #info {
+      font-size: 1.2rem;
+      margin-top: 1.5rem;
+      text-align: center;
+      z-index: 2;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 9999;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <header>Medium – Selezione Carte Zener</header>
+  <div id="main-content">
+    <div id="card-bar">
+      <img class="card" data-card="circle" src="circle.png" alt="circle">
+      <img class="card" data-card="square" src="square.png" alt="square">
+      <img class="card" data-card="cross" src="cross.png" alt="cross">
+      <img class="card" data-card="waves" src="waves.png" alt="waves">
+      <img class="card" data-card="star" src="star.png" alt="star">
+    </div>
+
+    <div id="carta-coperta"></div>
+    <div id="info">In attesa della carta dall'operatore...</div>
+  </div>
+
+  <video id="input_video" playsinline style="display:none;"></video>
+  <canvas id="output_canvas"></canvas>
+
+  <script>
+    const info = document.getElementById("info");
+    const cards = document.querySelectorAll('.card');
+    const canvasElement = document.getElementById('output_canvas');
+    const canvasCtx = canvasElement.getContext('2d');
+    const videoElement = document.getElementById('input_video');
+    const channel = new BroadcastChannel("zener_test");
+
+    let turnoCorrente = 0;
+    let cartaSegreta = null;
+    let selectedCard = null;
+
+    function resizeCanvas() {
+      canvasElement.width = window.innerWidth;
+      canvasElement.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    channel.onmessage = (e) => {
+      if (e.data.tipo === "reset") {
+        turnoCorrente = 0;
+        cartaSegreta = null;
+        selectedCard = null;
+        cards.forEach(c => c.classList.remove('selected', 'hovered'));
+        info.textContent = "In attesa della carta dall'operatore...";
+        return;
+      }
+
+      const { turno, carta } = e.data;
+      turnoCorrente = turno;
+      cartaSegreta = carta;
+      info.textContent = `Turno ${turnoCorrente} - Scegli la carta corrispondente`;
+      cards.forEach(c => c.classList.remove('selected'));
+      selectedCard = null;
+    };
+
+    const hands = new Hands({
+      locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+    });
+
+    hands.setOptions({
+      maxNumHands: 1,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5
+    });
+
+    hands.onResults(results => {
+      canvasCtx.save();
+      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      canvasCtx.translate(canvasElement.width, 0);
+      canvasCtx.scale(-1, 1);
+
+      if (results.multiHandLandmarks) {
+        for (const landmarks of results.multiHandLandmarks) {
+          window.drawConnectors(canvasCtx, landmarks, window.HAND_CONNECTIONS, {
+            color: '#66ccff', lineWidth: 2
+          });
+          window.drawLandmarks(canvasCtx, landmarks, {
+            color: '#003366', lineWidth: 1
+          });
+
+          const indexTip = landmarks[8];
+          const thumbTip = landmarks[4];
+
+          const indexX = (1 - indexTip.x) * canvasElement.width;
+          const indexY = indexTip.y * canvasElement.height;
+          const thumbX = (1 - thumbTip.x) * canvasElement.width;
+          const thumbY = thumbTip.y * canvasElement.height;
+
+          const hovered = document.elementFromPoint(indexX, indexY);
+          const tapped = document.elementFromPoint(thumbX, thumbY);
+
+          cards.forEach(card => card.classList.remove('hovered'));
+
+          if (hovered && hovered.classList.contains('card') && !hovered.classList.contains('selected')) {
+            hovered.classList.add('hovered');
+          }
+
+          if (tapped && tapped.classList.contains('card') && selectedCard === null) {
+            cards.forEach(c => c.classList.remove('selected'));
+            tapped.classList.add('selected');
+            selectedCard = tapped.dataset.card;
+            info.textContent = `Turno ${turnoCorrente} - Hai scelto: ${selectedCard}`;
+            channel.postMessage({
+              tipo: "risultato",
+              turno: turnoCorrente,
+              segreta: cartaSegreta,
+              predetta: selectedCard
+            });
+          }
+        }
+      }
+
+      canvasCtx.restore();
+    });
+
+    const camera = new Camera(videoElement, {
+      onFrame: async () => {
+        await hands.send({ image: videoElement });
+      },
+      width: 1280,
+      height: 720
+    });
+    camera.start();
+  </script>
+</body>
+</html>
