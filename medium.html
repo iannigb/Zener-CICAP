@@ -125,6 +125,24 @@
     let cartaSegreta = null;
     let selectedCard = null;
 
+    function selezionaCarta(cardElem) {
+      if (selectedCard !== null) return;
+      cards.forEach(c => c.classList.remove('selected'));
+      cardElem.classList.add('selected');
+      selectedCard = cardElem.dataset.card;
+      info.textContent = `Turno ${turnoCorrente} - Hai scelto: ${selectedCard}`;
+      channel.postMessage({
+        tipo: "risultato",
+        turno: turnoCorrente,
+        segreta: cartaSegreta,
+        predetta: selectedCard
+      });
+    }
+
+    cards.forEach(card => {
+      card.addEventListener('click', () => selezionaCarta(card));
+    });
+
     function resizeCanvas() {
       canvasElement.width = window.innerWidth;
       canvasElement.height = window.innerHeight;
@@ -193,17 +211,8 @@
             hovered.classList.add('hovered');
           }
 
-          if (tapped && tapped.classList.contains('card') && selectedCard === null) {
-            cards.forEach(c => c.classList.remove('selected'));
-            tapped.classList.add('selected');
-            selectedCard = tapped.dataset.card;
-            info.textContent = `Turno ${turnoCorrente} - Hai scelto: ${selectedCard}`;
-            channel.postMessage({
-              tipo: "risultato",
-              turno: turnoCorrente,
-              segreta: cartaSegreta,
-              predetta: selectedCard
-            });
+          if (tapped && tapped.classList.contains('card')) {
+            selezionaCarta(tapped);
           }
         }
       }
