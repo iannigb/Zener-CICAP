@@ -85,6 +85,14 @@
       width: 40px;
       height: auto;
     }
+
+    .final-message {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #fff3cd;
+      border: 1px solid #ffeeba;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
@@ -115,6 +123,7 @@
       </thead>
       <tbody id="storico"></tbody>
     </table>
+    <div id="final-message" class="final-message"></div>
   </main>
 
   <script>
@@ -133,6 +142,7 @@
     const corretteElem = document.getElementById("corrette");
     const totaliElem = document.getElementById("totali");
     const btnNext = document.getElementById("btn-next");
+    const finalMessageElem = document.getElementById("final-message");
 
     const channel = new BroadcastChannel("zener_test");
 
@@ -157,6 +167,25 @@
       }
     }
 
+    function combina(n, k) {
+      if (k < 0 || k > n) return 0;
+      if (k === 0 || k === n) return 1;
+      k = Math.min(k, n - k);
+      let c = 1;
+      for (let i = 0; i < k; i++) {
+        c = c * (n - i) / (i + 1);
+      }
+      return c;
+    }
+
+    function probAtLeast(n, k, p) {
+      let prob = 0;
+      for (let i = k; i <= n; i++) {
+        prob += combina(n, i) * Math.pow(p, i) * Math.pow(1 - p, n - i);
+      }
+      return prob;
+    }
+
     let mazzo = creaMazzoZener();
 
     function mostraRisultatoFinale() {
@@ -169,7 +198,11 @@
         messaggio += "❌ Il test NON è superato secondo il criterio del protocollo.";
       }
 
-      alert(messaggio);
+      const prob = probAtLeast(50, corrette, 0.2);
+      const volte = prob > 0 ? Math.round(1 / prob) : Infinity;
+      messaggio += `\nQuesto risultato potrebbe verificarsi per puro caso circa 1 volta su ${volte}.`;
+
+      finalMessageElem.textContent = messaggio;
       btnNext.disabled = true;
     }
 
@@ -181,6 +214,7 @@
       corretteElem.textContent = 0;
       totaliElem.textContent = 0;
       storicoElem.innerHTML = '';
+      finalMessageElem.textContent = '';
       btnNext.disabled = false;
       mazzo = creaMazzoZener();
 
