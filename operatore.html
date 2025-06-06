@@ -204,9 +204,6 @@
       cardElem.style.backgroundImage = `url(${immagini[cartaAttuale]})`;
       channel.postMessage({ turno, carta: cartaAttuale });
 
-      if (turno === 50) {
-        setTimeout(mostraRisultatoFinale, 500);
-      }
     }
 
     channel.onmessage = (e) => {
@@ -231,6 +228,8 @@
 
         if (turno < 50) {
           btnNext.disabled = false;
+        } else {
+          mostraRisultatoFinale();
         }
       }
     };
