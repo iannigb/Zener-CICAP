@@ -191,7 +191,7 @@
 
     function mostraRisultatoFinale() {
       const corrette = risultati.filter(r => r.segreta === r.predetta).length;
-      let messaggio = `Test completato. Risposte corrette: ${corrette}/50.\n`;
+      let messaggio = `Test completato. Risposte corrette: ${corrette}/25.\n`;
 
       if (corrette >= 18) {
         messaggio += "✅ Il test è SUPERATO secondo il criterio del protocollo.";
@@ -199,7 +199,7 @@
         messaggio += "❌ Il test NON è superato secondo il criterio del protocollo.";
       }
 
-      const prob = probAtLeast(50, corrette, 0.2);
+      const prob = probAtLeast(25, corrette, 0.2);
       const volte = prob > 0 ? Math.round(1 / prob) : Infinity;
       messaggio += `\nQuesto risultato potrebbe verificarsi per puro caso circa 1 volta su ${volte}.`;
 
@@ -226,14 +226,14 @@
     }
 
     function nextCard() {
-      if (turno >= 50) {
-        alert("Hai già effettuato 50 turni. Il test è concluso.");
+      if (turno >= 25) {
+        alert("Hai già effettuato 25 turni. Il test è concluso.");
         return;
       }
 
       btnNext.disabled = true;
       mescolaMazzo(mazzo);
-      cartaAttuale = mazzo[0];
+      cartaAttuale = mazzo.pop();
       turno++;
       turnoElem.textContent = turno;
       cardElem.style.backgroundImage = `url(${immagini[cartaAttuale]})`;
@@ -261,7 +261,7 @@
         corretteElem.textContent = corrette;
         totaliElem.textContent = risultati.length;
 
-        if (turno < 50) {
+        if (turno < 25) {
           btnNext.disabled = false;
         } else {
           mostraRisultatoFinale();
