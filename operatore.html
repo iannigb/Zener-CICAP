@@ -203,8 +203,8 @@
       }
 
       const prob = probAtLeast(25, corrette, 0.2);
-      const volte = prob > 0 ? Math.round(1 / prob) : Infinity;
-      messaggio += `\nQuesto risultato potrebbe verificarsi per puro caso circa 1 volta su ${volte}.`;
+      const volte = prob > 0 ? (1 / prob).toFixed(2) : Infinity;
+      messaggio += `\nSi possono indovinare almeno ${corrette} risultati su 25 per puro caso 1 volta su ${volte}.`;
 
       finalMessageElem.textContent = messaggio;
       btnNext.disabled = true;
@@ -265,8 +265,8 @@
         corretteElem.textContent = corrette;
         totaliElem.textContent = risultati.length;
         const prob = probAtLeast(risultati.length, corrette, 0.2);
-        const volte = prob > 0 ? Math.round(1 / prob) : Infinity;
-        probMsgElem.textContent = `1 volta su ${volte} questo succede per puro caso`;
+        const volte = prob > 0 ? (1 / prob).toFixed(2) : Infinity;
+        probMsgElem.textContent = `Si possono indovinare almeno ${corrette} risultati su ${risultati.length} per puro caso 1 volta su ${volte}`;
 
         if (turno < 25) {
           btnNext.disabled = false;
