@@ -193,8 +193,8 @@
       }
 
       const prob = probAtLeast(TOT_TURNI, corrette, 0.2);
-      const volte = prob > 0 ? Math.round(1 / prob) : Infinity;
-      messaggio += ` Questo risultato potrebbe verificarsi per puro caso circa 1 volta su ${volte}.`;
+      const volte = prob > 0 ? (1 / prob).toFixed(2) : Infinity;
+      messaggio += ` Si possono indovinare almeno ${corrette} risultati su ${TOT_TURNI} per puro caso 1 volta su ${volte}.`;
 
       finalMessageElem.textContent = messaggio;
   }
