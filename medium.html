@@ -108,6 +108,7 @@
 <body>
   <header>Medium – Selezione Carte Zener</header>
   <div id="main-content">
+    <div id="final-message"></div>
     <div id="card-bar">
       <img class="card" data-card="circle" src="circle.png" alt="circle">
       <img class="card" data-card="square" src="square.png" alt="square">
@@ -118,22 +119,22 @@
 
     <div id="carta-coperta"></div>
     <div id="info">In attesa della carta dall'operatore...</div>
-    <div id="final-message"></div>
   </div>
 
   <video id="input_video" playsinline style="display:none;"></video>
   <canvas id="output_canvas"></canvas>
 
   <script>
-    const info = document.getElementById("info");
-    const finalMessageElem = document.getElementById("final-message");
-    const cards = document.querySelectorAll('.card');
+  const info = document.getElementById("info");
+  const finalMessageElem = document.getElementById("final-message");
+  const TOT_TURNI = 25;
+  finalMessageElem.textContent = `0/${TOT_TURNI}`;
+  const cards = document.querySelectorAll('.card');
     const canvasElement = document.getElementById('output_canvas');
     const canvasCtx = canvasElement.getContext('2d');
     const videoElement = document.getElementById('input_video');
     const channel = new BroadcastChannel("zener_test");
 
-    const TOT_TURNI = 25;
     let turnoCorrente = 0;
     let cartaSegreta = null;
     let selectedCard = null;
@@ -158,7 +159,7 @@
       return prob;
     }
 
-    function mostraRisultatoFinale() {
+  function mostraRisultatoFinale() {
       const corrette = risultati.filter(r => r.segreta === r.predetta).length;
       let messaggio = `Test completato. Risposte corrette: ${corrette}/${TOT_TURNI}.`;
 
@@ -173,7 +174,7 @@
       messaggio += ` Questo risultato potrebbe verificarsi per puro caso circa 1 volta su ${volte}.`;
 
       finalMessageElem.textContent = messaggio;
-    }
+  }
 
     function selezionaCarta(cardElem) {
       if (selectedCard !== null || cartaSegreta === null) return;
@@ -183,6 +184,8 @@
       info.textContent = `Turno ${turnoCorrente}/${TOT_TURNI} - Hai scelto: ${selectedCard}`;
 
       risultati.push({ turno: turnoCorrente, segreta: cartaSegreta, predetta: selectedCard });
+
+      finalMessageElem.textContent = `${risultati.length}/${TOT_TURNI}`;
 
       channel.postMessage({
         tipo: "risultato",
@@ -215,7 +218,7 @@
         risultati.length = 0;
         cards.forEach(c => c.classList.remove('selected', 'hovered'));
         info.textContent = "In attesa della carta dall'operatore...";
-        finalMessageElem.textContent = '';
+        finalMessageElem.textContent = `0/${TOT_TURNI}`;
         return;
       }
 
@@ -223,7 +226,7 @@
       turnoCorrente = turno;
       cartaSegreta = carta;
       info.textContent = `Turno ${turnoCorrente}/${TOT_TURNI} - Scegli la carta corrispondente`;
-      finalMessageElem.textContent = '';
+      finalMessageElem.textContent = `${risultati.length}/${TOT_TURNI}`;
       cards.forEach(c => c.classList.remove('selected'));
       selectedCard = null;
     };
