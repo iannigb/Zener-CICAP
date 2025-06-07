@@ -84,6 +84,16 @@
       z-index: 2;
     }
 
+    #final-message {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #fff3cd;
+      border: 1px solid #ffeeba;
+      border-radius: 8px;
+      max-width: 400px;
+      text-align: center;
+    }
+
     canvas {
       position: fixed;
       top: 0;
@@ -108,6 +118,7 @@
 
     <div id="carta-coperta"></div>
     <div id="info">In attesa della carta dall'operatore...</div>
+    <div id="final-message"></div>
   </div>
 
   <video id="input_video" playsinline style="display:none;"></video>
@@ -115,28 +126,74 @@
 
   <script>
     const info = document.getElementById("info");
+    const finalMessageElem = document.getElementById("final-message");
     const cards = document.querySelectorAll('.card');
     const canvasElement = document.getElementById('output_canvas');
     const canvasCtx = canvasElement.getContext('2d');
     const videoElement = document.getElementById('input_video');
     const channel = new BroadcastChannel("zener_test");
 
+    const TOT_TURNI = 25;
     let turnoCorrente = 0;
     let cartaSegreta = null;
     let selectedCard = null;
+    const risultati = [];
+
+    function combina(n, k) {
+      if (k < 0 || k > n) return 0;
+      if (k === 0 || k === n) return 1;
+      k = Math.min(k, n - k);
+      let c = 1;
+      for (let i = 0; i < k; i++) {
+        c = c * (n - i) / (i + 1);
+      }
+      return c;
+    }
+
+    function probAtLeast(n, k, p) {
+      let prob = 0;
+      for (let i = k; i <= n; i++) {
+        prob += combina(n, i) * Math.pow(p, i) * Math.pow(1 - p, n - i);
+      }
+      return prob;
+    }
+
+    function mostraRisultatoFinale() {
+      const corrette = risultati.filter(r => r.segreta === r.predetta).length;
+      let messaggio = `Test completato. Risposte corrette: ${corrette}/${TOT_TURNI}.`;
+
+      if (corrette >= 18) {
+        messaggio += " ✅ Test SUPERATO secondo il protocollo.";
+      } else {
+        messaggio += " ❌ Test NON superato secondo il protocollo.";
+      }
+
+      const prob = probAtLeast(TOT_TURNI, corrette, 0.2);
+      const volte = prob > 0 ? Math.round(1 / prob) : Infinity;
+      messaggio += ` Questo risultato potrebbe verificarsi per puro caso circa 1 volta su ${volte}.`;
+
+      finalMessageElem.textContent = messaggio;
+    }
 
     function selezionaCarta(cardElem) {
       if (selectedCard !== null || cartaSegreta === null) return;
       cards.forEach(c => c.classList.remove('selected'));
       cardElem.classList.add('selected');
       selectedCard = cardElem.dataset.card;
-      info.textContent = `Turno ${turnoCorrente} - Hai scelto: ${selectedCard}`;
+      info.textContent = `Turno ${turnoCorrente}/${TOT_TURNI} - Hai scelto: ${selectedCard}`;
+
+      risultati.push({ turno: turnoCorrente, segreta: cartaSegreta, predetta: selectedCard });
+
       channel.postMessage({
         tipo: "risultato",
         turno: turnoCorrente,
         segreta: cartaSegreta,
         predetta: selectedCard
       });
+
+      if (turnoCorrente >= TOT_TURNI) {
+        mostraRisultatoFinale();
+      }
     }
 
     cards.forEach(card => {
@@ -155,15 +212,18 @@
         turnoCorrente = 0;
         cartaSegreta = null;
         selectedCard = null;
+        risultati.length = 0;
         cards.forEach(c => c.classList.remove('selected', 'hovered'));
         info.textContent = "In attesa della carta dall'operatore...";
+        finalMessageElem.textContent = '';
         return;
       }
 
       const { turno, carta } = e.data;
       turnoCorrente = turno;
       cartaSegreta = carta;
-      info.textContent = `Turno ${turnoCorrente} - Scegli la carta corrispondente`;
+      info.textContent = `Turno ${turnoCorrente}/${TOT_TURNI} - Scegli la carta corrispondente`;
+      finalMessageElem.textContent = '';
       cards.forEach(c => c.classList.remove('selected'));
       selectedCard = null;
     };
