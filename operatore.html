@@ -226,12 +226,12 @@
       // Comunica il reset al medium
       channel.postMessage({ tipo: "reset" });
 
-      alert("Nuovo test iniziato! Premi 'Nuova Carta' per iniziare il primo turno.");
+      finalMessageElem.textContent = "Nuovo test iniziato! Premi 'Nuova Carta' per iniziare il primo turno.";
     }
 
     function nextCard() {
       if (turno >= 25) {
-        alert("Hai già effettuato 25 turni. Il test è concluso.");
+        finalMessageElem.textContent = "Hai già effettuato 25 turni. Il test è concluso.";
         return;
       }
 
