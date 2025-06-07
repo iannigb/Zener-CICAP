@@ -88,9 +88,10 @@
 
     .final-message {
       margin-top: 1rem;
-      font-size: 1.2rem;
-      font-weight: bold;
-      text-align: center;
+      padding: 1rem;
+      background: #fff3cd;
+      border: 1px solid #ffeeba;
+      border-radius: 8px;
     }
   </style>
 </head>
@@ -111,6 +112,8 @@
       <button onclick="scaricaCSV()">Scarica CSV</button>
     </div>
 
+    <div id="final-message" class="final-message"></div>
+
     <table>
       <thead>
         <tr>
@@ -122,7 +125,6 @@
       </thead>
       <tbody id="storico"></tbody>
     </table>
-    <div id="final-message" class="final-message"></div>
   </main>
 
   <script>
@@ -159,6 +161,7 @@
       return mazzo;
     }
 
+    let mazzo = creaMazzoZener();
     function mescolaMazzo(mazzo) {
       for (let i = mazzo.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -166,7 +169,25 @@
       }
     }
 
-    let mazzo = creaMazzoZener();
+    function combina(n, k) {
+      if (k < 0 || k > n) return 0;
+      if (k === 0 || k === n) return 1;
+      k = Math.min(k, n - k);
+      let c = 1;
+      for (let i = 0; i < k; i++) {
+        c = c * (n - i) / (i + 1);
+      }
+      return c;
+    }
+
+    function probAtLeast(n, k, p) {
+      let prob = 0;
+      for (let i = k; i <= n; i++) {
+        prob += combina(n, i) * Math.pow(p, i) * Math.pow(1 - p, n - i);
+      }
+      return prob;
+    }
+
 
     function mostraRisultatoFinale() {
       const corrette = risultati.filter(r => r.segreta === r.predetta).length;
@@ -178,9 +199,11 @@
         messaggio += "❌ Il test NON è superato secondo il criterio del protocollo.";
       }
 
+      const prob = probAtLeast(50, corrette, 0.2);
+      const volte = prob > 0 ? Math.round(1 / prob) : Infinity;
+      messaggio += `\nQuesto risultato potrebbe verificarsi per puro caso circa 1 volta su ${volte}.`;
+
       finalMessageElem.textContent = messaggio;
-      channel.postMessage({ tipo: "finale", messaggio });
-      alert(messaggio);
       btnNext.disabled = true;
     }
 
@@ -232,7 +255,7 @@
           <td><img class="symbol" src="${immagini[predetta]}" alt="${predetta}"></td>
           <td>${esatta}</td>
         `;
-        storicoElem.appendChild(row);
+        storicoElem.prepend(row);
 
         const corrette = risultati.filter(r => r.segreta === r.predetta).length;
         corretteElem.textContent = corrette;
