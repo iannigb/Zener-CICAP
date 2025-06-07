@@ -196,9 +196,9 @@
       let messaggio = `Test completato. Risposte corrette: ${corrette}/25.\n`;
 
       if (corrette >= 18) {
-        messaggio += "✅ Il test è SUPERATO secondo il criterio del protocollo.";
+        messaggio += "✅ Con almeno 18 risposte esatte, il test è SUPERATO secondo il criterio del protocollo.";
       } else {
-        messaggio += "❌ Il test NON è superato secondo il criterio del protocollo.";
+        messaggio += "❌ Come meno di 18 risposte esatte, il test NON è superato secondo il criterio del protocollo.";
       }
 
       const prob = probAtLeast(25, corrette, 0.2);
