@@ -145,7 +145,7 @@
   <script>
   const info = document.getElementById("info");
   const finalMessageElem = document.getElementById("final-message");
-  const TOT_TURNI = 25;
+  let TOT_TURNI = 25;
   finalMessageElem.textContent = `0/${TOT_TURNI}`;
   const cards = document.querySelectorAll('.card');
     const canvasElement = document.getElementById('output_canvas');
@@ -235,6 +235,7 @@
 
     channel.onmessage = (e) => {
       if (e.data.tipo === "reset") {
+        TOT_TURNI = e.data.totTurni || TOT_TURNI;
         turnoCorrente = 0;
         cartaSegreta = null;
         selectedCard = null;
