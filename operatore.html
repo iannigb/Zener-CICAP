@@ -112,6 +112,8 @@
       <button onclick="scaricaCSV()">Scarica CSV</button>
     </div>
 
+    <div id="final-message" class="final-message"></div>
+
     <table>
       <thead>
         <tr>
@@ -123,7 +125,6 @@
       </thead>
       <tbody id="storico"></tbody>
     </table>
-    <div id="final-message" class="final-message"></div>
   </main>
 
   <script>
@@ -254,7 +255,7 @@
           <td><img class="symbol" src="${immagini[predetta]}" alt="${predetta}"></td>
           <td>${esatta}</td>
         `;
-        storicoElem.appendChild(row);
+        storicoElem.prepend(row);
 
         const corrette = risultati.filter(r => r.segreta === r.predetta).length;
         corretteElem.textContent = corrette;
