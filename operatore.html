@@ -101,8 +101,7 @@
     <div class="controls">
       <button onclick="iniziaPartita()" id="btn-inizia">Inizia Nuovo Test</button>
       <button onclick="nextCard()" id="btn-next">Nuova Carta</button>
-      <label>Numero lanci: <input type="range" id="num-turni" min="25" max="125" step="25" value="25"></label>
-      <span id="num-turni-display">25</span>
+      <button id="toggle-info" onclick="toggleInfo()">Nascondi risultati</button>
       <div>Turno: <span id="turno">0</span></div>
       <div id="card" class="card-image"></div>
     </div>
@@ -149,21 +148,17 @@
     const probMsgElem = document.getElementById("prob-msg");
     const btnNext = document.getElementById("btn-next");
     const finalMessageElem = document.getElementById("final-message");
-    const numTurniInput = document.getElementById("num-turni");
-    const numTurniDisplay = document.getElementById("num-turni-display");
+    const toggleInfoBtn = document.getElementById("toggle-info");
+    const infoBox = document.getElementById("info-box");
 
     const channel = new BroadcastChannel("zener_test");
 
     let turno = 0;
     let cartaAttuale = null;
     const risultati = [];
-    let TOT_TURNI = parseInt(numTurniInput.value);
-
-    numTurniDisplay.textContent = TOT_TURNI;
-    numTurniInput.addEventListener('input', () => {
-      TOT_TURNI = parseInt(numTurniInput.value);
-      numTurniDisplay.textContent = TOT_TURNI;
-    });
+    let TOT_TURNI = 50;
+    const sogliaSignificativita = 18;
+    let infoVisibile = true;
 
     function creaMazzoZener() {
       let mazzo = [];
@@ -207,10 +202,10 @@
       const corrette = risultati.filter(r => r.segreta === r.predetta).length;
     let messaggio = `Test completato. Risposte corrette: ${corrette}/${TOT_TURNI}.\n`;
 
-      if (corrette >= 18) {
-        messaggio += "✅ Con almeno 18 risposte esatte, il test è SUPERATO secondo il criterio del protocollo.";
+      if (corrette >= sogliaSignificativita) {
+        messaggio += `✅ Con almeno ${sogliaSignificativita} risposte esatte, il test è SUPERATO secondo il criterio del protocollo.`;
       } else {
-        messaggio += "❌ Come meno di 18 risposte esatte, il test NON è superato secondo il criterio del protocollo.";
+        messaggio += `❌ Con meno di ${sogliaSignificativita} risposte esatte, il test NON è superato secondo il criterio del protocollo.`;
       }
 
       const prob = probAtLeast(TOT_TURNI, corrette, 0.2);
@@ -222,8 +217,6 @@
     }
 
     function iniziaPartita() {
-      TOT_TURNI = parseInt(numTurniInput.value);
-      numTurniDisplay.textContent = TOT_TURNI;
       turno = 0;
       cartaAttuale = null;
       risultati.length = 0;
@@ -304,6 +297,12 @@
       link.href = URL.createObjectURL(blob);
       link.download = "risultati_zener.csv";
       link.click();
+    }
+
+    function toggleInfo() {
+      infoVisibile = !infoVisibile;
+      infoBox.style.display = infoVisibile ? '' : 'none';
+      toggleInfoBtn.textContent = infoVisibile ? 'Nascondi risultati' : 'Mostra risultati';
     }
   </script>
 </body>
