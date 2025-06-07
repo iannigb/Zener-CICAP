@@ -93,6 +93,13 @@
       z-index: 9999;
       pointer-events: none;
     }
+
+    .final-message {
+      margin-top: 1rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -108,6 +115,7 @@
 
     <div id="carta-coperta"></div>
     <div id="info">In attesa della carta dall'operatore...</div>
+    <div id="final-message" class="final-message"></div>
   </div>
 
   <video id="input_video" playsinline style="display:none;"></video>
@@ -115,6 +123,7 @@
 
   <script>
     const info = document.getElementById("info");
+    const finalMessageElem = document.getElementById("final-message");
     const cards = document.querySelectorAll('.card');
     const canvasElement = document.getElementById('output_canvas');
     const canvasCtx = canvasElement.getContext('2d');
@@ -157,6 +166,12 @@
         selectedCard = null;
         cards.forEach(c => c.classList.remove('selected', 'hovered'));
         info.textContent = "In attesa della carta dall'operatore...";
+        finalMessageElem.textContent = "";
+        return;
+      }
+
+      if (e.data.tipo === "finale") {
+        finalMessageElem.textContent = e.data.messaggio;
         return;
       }
 

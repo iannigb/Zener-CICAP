@@ -85,6 +85,13 @@
       width: 40px;
       height: auto;
     }
+
+    .final-message {
+      margin-top: 1rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -115,6 +122,7 @@
       </thead>
       <tbody id="storico"></tbody>
     </table>
+    <div id="final-message" class="final-message"></div>
   </main>
 
   <script>
@@ -133,6 +141,7 @@
     const corretteElem = document.getElementById("corrette");
     const totaliElem = document.getElementById("totali");
     const btnNext = document.getElementById("btn-next");
+    const finalMessageElem = document.getElementById("final-message");
 
     const channel = new BroadcastChannel("zener_test");
 
@@ -169,6 +178,8 @@
         messaggio += "❌ Il test NON è superato secondo il criterio del protocollo.";
       }
 
+      finalMessageElem.textContent = messaggio;
+      channel.postMessage({ tipo: "finale", messaggio });
       alert(messaggio);
       btnNext.disabled = true;
     }
@@ -181,6 +192,7 @@
       corretteElem.textContent = 0;
       totaliElem.textContent = 0;
       storicoElem.innerHTML = '';
+      finalMessageElem.textContent = '';
       btnNext.disabled = false;
       mazzo = creaMazzoZener();
 
