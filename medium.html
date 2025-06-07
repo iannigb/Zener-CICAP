@@ -126,7 +126,7 @@
     let selectedCard = null;
 
     function selezionaCarta(cardElem) {
-      if (selectedCard !== null) return;
+      if (selectedCard !== null || cartaSegreta === null) return;
       cards.forEach(c => c.classList.remove('selected'));
       cardElem.classList.add('selected');
       selectedCard = cardElem.dataset.card;
@@ -207,11 +207,11 @@
 
           cards.forEach(card => card.classList.remove('hovered'));
 
-          if (hovered && hovered.classList.contains('card') && !hovered.classList.contains('selected')) {
+          if (cartaSegreta !== null && hovered && hovered.classList.contains('card') && !hovered.classList.contains('selected')) {
             hovered.classList.add('hovered');
           }
 
-          if (tapped && tapped.classList.contains('card')) {
+          if (cartaSegreta !== null && tapped && tapped.classList.contains('card')) {
             selezionaCarta(tapped);
           }
         }
