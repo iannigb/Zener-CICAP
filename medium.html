@@ -145,7 +145,8 @@
   <script>
   const info = document.getElementById("info");
   const finalMessageElem = document.getElementById("final-message");
-  let TOT_TURNI = 25;
+  let TOT_TURNI = 50;
+  const sogliaSignificativita = 18;
   finalMessageElem.textContent = `0/${TOT_TURNI}`;
   const cards = document.querySelectorAll('.card');
     const canvasElement = document.getElementById('output_canvas');
@@ -186,10 +187,10 @@
       const corrette = risultati.filter(r => r.segreta === r.predetta).length;
       let messaggio = `Test completato. Risposte corrette: ${corrette}/${TOT_TURNI}.`;
 
-      if (corrette >= 18) {
-        messaggio += " ✅ Test SUPERATO secondo il protocollo.";
+      if (corrette >= sogliaSignificativita) {
+        messaggio += ` ✅ Test SUPERATO secondo il protocollo (almeno ${sogliaSignificativita} risposte corrette).`;
       } else {
-        messaggio += " ❌ Test NON superato secondo il protocollo.";
+        messaggio += ` ❌ Test NON superato secondo il protocollo (meno di ${sogliaSignificativita} risposte corrette).`;
       }
 
       const prob = probAtLeast(TOT_TURNI, corrette, 0.2);
