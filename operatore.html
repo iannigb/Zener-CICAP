@@ -108,6 +108,7 @@
     <div class="stats">
       Statistiche: <span id="corrette">0</span> corrette su <span id="totali">0</span>
     </div>
+    <div id="prob-msg" class="probability"></div>
     <div class="download">
       <button onclick="scaricaCSV()">Scarica CSV</button>
     </div>
@@ -142,6 +143,7 @@
     const storicoElem = document.getElementById("storico");
     const corretteElem = document.getElementById("corrette");
     const totaliElem = document.getElementById("totali");
+    const probMsgElem = document.getElementById("prob-msg");
     const btnNext = document.getElementById("btn-next");
     const finalMessageElem = document.getElementById("final-message");
 
@@ -214,6 +216,7 @@
       turnoElem.textContent = turno;
       corretteElem.textContent = 0;
       totaliElem.textContent = 0;
+      probMsgElem.textContent = '';
       storicoElem.innerHTML = '';
       finalMessageElem.textContent = '';
       btnNext.disabled = false;
@@ -260,6 +263,9 @@
         const corrette = risultati.filter(r => r.segreta === r.predetta).length;
         corretteElem.textContent = corrette;
         totaliElem.textContent = risultati.length;
+        const prob = probAtLeast(risultati.length, corrette, 0.2);
+        const volte = prob > 0 ? Math.round(1 / prob) : Infinity;
+        probMsgElem.textContent = `1 volta su ${volte} questo succede per puro caso`;
 
         if (turno < 50) {
           btnNext.disabled = false;
