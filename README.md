@@ -22,8 +22,5 @@ Entrambe le pagine comunicano tramite `BroadcastChannel` (nome del canale `zener
 3. Usare la pagina dell'operatore per iniziare un nuovo test e rivelare le carte. Il medium sceglie un simbolo a ogni turno. I risultati e le statistiche sono mostrati nella pagina dell'operatore e possono essere esportati in formato CSV.
 4. In alternativa è possibile aprire entrambe le pagine con un doppio clic sui file HTML: anche così il `BroadcastChannel` funziona correttamente se il browser le carica in locale (ad esempio da `127.0.0.1`).
 
-Il test prevede di default 25 turni (`TOT_TURNI`). I calcoli di probabilità mostrano quanto sia probabile ottenere gli stessi risultati per puro caso.
-
-## Licenza
-
-Non è stata fornita alcuna licenza con questo repository.
+Il test prevede di default 50 turni (`TOT_TURNI`). I calcoli di probabilità mostrano quanto sia probabile ottenere gli stessi risultati per puro caso.
+Il test fornisce un risultato positivo se si indovinano almeno 18 carte su 50 (cosa che può avvenire nel circa l'1% dei test per pura casualità).
